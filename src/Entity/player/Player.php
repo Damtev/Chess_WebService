@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace App\Entity\player;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\exceptions\player\InvalidPlayerTypeException;
+use App\exceptions\player\InvalidPlayerTypeException;
 use App\Entity\game\GameState;
 use App\Entity\grid\Location;
 use App\Entity\piece\Piece;
@@ -59,6 +59,11 @@ class Player {
         $this->playerType = $playerType;
     }
 
+    /**
+     * @param int $playerType
+     * @return Player
+     * @throws InvalidPlayerTypeException
+     */
     public static function getInstance(int $playerType) {
         if (key_exists($playerType, self::PLAYER_TYPES)) {
             return new Player($playerType);
@@ -144,6 +149,10 @@ class Player {
         $this->isInCheck = $isInCheck;
     }
 
+    /**
+     * @param Piece $piece
+     * @return bool
+     */
     public function addPiece(Piece $piece): bool {
         $pieceLocation = $piece->getLocation();
         foreach ($this->pieces as $existingPiece) {
@@ -155,20 +164,32 @@ class Player {
         return true;
     }
 
+    /**
+     * @param Piece $piece
+     */
     public function deletePiece(Piece $piece) {
         $key = array_search($piece, $this->getPieces());
         unset($this->pieces[$key]);
         $this->pieces = array_values($this->pieces);
     }
 
+    /**
+     * @return string
+     */
     public function __toString(): string {
         return $this->getPlayerType();
     }
 
+    /**
+     * @return bool
+     */
     public function isWhite(): bool {
         return $this->getPlayerType() == self::PLAYER_TYPES[self::WHITE];
     }
 
+    /**
+     * @return bool
+     */
     public function isBlack(): bool {
         return !$this->isWhite();
     }

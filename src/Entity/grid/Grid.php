@@ -48,10 +48,20 @@ class Grid implements ArrayAccess {
         return $this->id;
     }
 
+    /**
+     * @return Piece[]
+     */
     public function getSquares() {
         return $this->squares;
     }
 
+    /**
+     * @param Player $whites
+     * @param Player $blacks
+     * @return Grid
+     * @throws \App\exceptions\location\InvalidFileException
+     * @throws \App\exceptions\location\InvalidRankException
+     */
     public static function getDefaultGrid(Player $whites, Player $blacks): Grid {
         $whiteSet = Grid::getStandardSet($whites);
         $blackSet = Grid::getStandardSet($blacks);
@@ -114,10 +124,19 @@ class Grid implements ArrayAccess {
         $this->squares = $squares;
     }
 
+    /**
+     * @param string $location
+     * @param Piece $piece
+     */
     public function setSquare(string $location, Piece $piece) {
         $this->squares[$location] = $piece;
     }
 
+    /**
+     * @return string
+     * @throws \App\exceptions\location\InvalidFileException
+     * @throws \App\exceptions\location\InvalidRankException
+     */
     public function __toString(): string {
         $toString = "  ";
         for ($file = Location::MIN_FILE; $file <= Location::MAX_FILE; $file++) {
@@ -146,6 +165,10 @@ class Grid implements ArrayAccess {
         return $toString;
     }
 
+    /**
+     * @param Location $location
+     * @return string
+     */
     public static function squareColorFromLocation(Location $location): string {
         $fileDiff = $location->getChessFile() - Location::fileToInt(Location::MIN_FILE);
         $rankDiff = $location->getChessRank();
@@ -156,6 +179,10 @@ class Grid implements ArrayAccess {
         }
     }
 
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     */
     public function offsetSet($offset, $value) {
         if (is_null($offset)) {
             $this->squares[] = $value;
@@ -164,14 +191,25 @@ class Grid implements ArrayAccess {
         }
     }
 
+    /**
+     * @param mixed $offset
+     * @return bool
+     */
     public function offsetExists($offset) {
         return isset($this->squares[$offset]);
     }
 
+    /**
+     * @param mixed $offset
+     */
     public function offsetUnset($offset) {
         unset($this->squares[$offset]);
     }
 
+    /**
+     * @param mixed $offset
+     * @return Piece|mixed|null
+     */
     public function offsetGet($offset) {
         return isset($this->squares[$offset]) ? $this->squares[$offset] : null;
     }

@@ -3,12 +3,26 @@ declare(strict_types = 1);
 
 namespace App\Entity\piece;
 
-use App\Entity\exceptions\move\InvalidPieceMoveException;
-use App\Entity\exceptions\move\MoveThroughOccupiedSquareException;
+use App\exceptions\location\InvalidFileException;
+use App\exceptions\location\InvalidRankException;
+use App\exceptions\move\InvalidPieceMoveException;
+use App\exceptions\move\MoveThroughOccupiedSquareException;
 use App\Entity\grid\Grid;
 use App\Entity\grid\Location;
 
+/**
+ * Class LongMovablePiece
+ * @package App\Entity\piece
+ */
 class LongMovablePiece extends Piece {
+    /**
+     * @param Location $targetLocation
+     * @param Grid $grid
+     * @throws InvalidPieceMoveException
+     * @throws MoveThroughOccupiedSquareException
+     * @throws InvalidFileException
+     * @throws InvalidRankException
+     */
     protected function checkDiagonalLine(Location $targetLocation, Grid $grid): void {
         $startFile = $this->getLocation()->getChessFile();
         $startRank = $this->getLocation()->getChessRank();
@@ -21,9 +35,17 @@ class LongMovablePiece extends Piece {
             throw new InvalidPieceMoveException($this, $targetLocation);
         }
 
-        $this->checkContinuousMove($targetLocation, $grid, $startFile, $startRank, $targetFile, $targetRank);
+        $this->checkContinuousMove($grid, $startFile, $startRank, $targetFile, $targetRank);
     }
 
+    /**
+     * @param Location $targetLocation
+     * @param Grid $grid
+     * @throws InvalidFileException
+     * @throws InvalidPieceMoveException
+     * @throws InvalidRankException
+     * @throws MoveThroughOccupiedSquareException
+     */
     protected function checkStraightLine(Location $targetLocation, Grid $grid): void {
         $startFile = $this->getLocation()->getChessFile();
         $startRank = $this->getLocation()->getChessRank();
@@ -38,10 +60,20 @@ class LongMovablePiece extends Piece {
             throw new InvalidPieceMoveException($this, $targetLocation);
         }
 
-        $this->checkContinuousMove($targetLocation, $grid, $startFile, $startRank, $targetFile, $targetRank);
+        $this->checkContinuousMove($grid, $startFile, $startRank, $targetFile, $targetRank);
     }
 
-    protected function checkContinuousMove(Location $targetLocation, Grid $grid, int $startFile, int $startRank, int $targetFile, int $targetRank) {
+    /**
+     * @param Grid $grid
+     * @param int $startFile
+     * @param int $startRank
+     * @param int $targetFile
+     * @param int $targetRank
+     * @throws MoveThroughOccupiedSquareException
+     * @throws InvalidFileException
+     * @throws InvalidRankException
+     */
+    protected function checkContinuousMove(Grid $grid, int $startFile, int $startRank, int $targetFile, int $targetRank) {
         $fileDiff = $targetFile - $startFile;
         $rankDiff = $targetRank - $startRank;
 

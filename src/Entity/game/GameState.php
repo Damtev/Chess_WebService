@@ -6,9 +6,8 @@ namespace App\Entity\game;
 use App\Entity\piece\Queen;
 use Doctrine\ORM\Mapping as ORM;
 use Exception;
-use App\Entity\exceptions\move\AnotherPieceOwnerException;
-use App\Entity\exceptions\move\InvalidMoveException;
-use App\Entity\exceptions\move\NotAPieceException;
+use App\exceptions\move\AnotherPieceOwnerException;
+use App\exceptions\move\NotAPieceException;
 use App\Entity\grid\Location;
 use App\Entity\piece\Bishop;
 use App\Entity\piece\King;
@@ -51,7 +50,6 @@ class GameState {
      */
     private Grid $grid;
 
-
     /**
      * @ORM\Column(type="string")
      */
@@ -76,6 +74,9 @@ class GameState {
         return $this->id;
     }
 
+    /**
+     * @return Player[]|array
+     */
     public function getPlayers() {
         return $this->players;
     }
@@ -129,6 +130,10 @@ class GameState {
         return $this->grid;
     }
 
+    /**
+     * @return GameState
+     * @throws \App\exceptions\player\InvalidPlayerTypeException
+     */
     public static function startGame(): GameState {
         $whites = Player::getInstance(Player::WHITE);
         $blacks = Player::getInstance(Player::BLACK);
@@ -149,13 +154,19 @@ class GameState {
         return $gameState;
     }
 
+    /**
+     * @param Location $startLocation
+     * @param Location $targetLocation
+     * @param int $transformTo
+     * @return string
+     */
     public function move(Location $startLocation, Location $targetLocation, int $transformTo = Queen::ID): string {
         if ($this->isEnded()) {
             return "Move is impossible, {${lcfirst($this->curGameStatus)}}";
         }
         try {
             $this->checkNotAPiece($startLocation);
-            $curPiece = $this->grid[(string) $startLocation];
+            $curPiece = $this->grid[(string)$startLocation];
             $this->checkTurn($curPiece);
 
             $opponentId = 1 - $this->curPlayer;
@@ -174,34 +185,45 @@ class GameState {
 
             $this->curPlayer = $opponentId;
 
-            return (string) $this->grid;
+            return (string)$this->grid;
         } catch (Exception $exception) {
-            return (string) $exception;
+            return (string)$exception;
         }
-
 
     }
 
+    /**
+     * @param Piece $curPiece
+     * @throws AnotherPieceOwnerException
+     */
     private function checkTurn(Piece $curPiece) {
         if (!Piece::isEmpty($curPiece) && $curPiece->getPlayer() !== $this->players[$this->curPlayer]) {
             throw new AnotherPieceOwnerException($curPiece, $this->players[$this->curPlayer]);
         }
     }
 
+    /**
+     * @param Location $location
+     * @throws NotAPieceException
+     */
     private function checkNotAPiece(Location $location): void {
-        $piece = $this->grid[(string) $location];
+        $piece = $this->grid[(string)$location];
         if (Piece::isEmpty($piece)) {
             throw new NotAPieceException($location);
         }
     }
 
+    /**
+     * @param int $opponentId
+     * @return bool
+     */
     private function isMate(int $opponentId): bool {
         $opponent = $this->players[$opponentId];
         foreach ($opponent->getPieces() as $piece) {
             $oldLocation = $piece->getLocation();
             foreach ($this->grid->getSquares() as $targetLocationString => $_) {
                 $targetLocation = Location::getInstanceFromString($targetLocationString);
-                $targetPiece = $this->grid[(string) $targetLocation];
+                $targetPiece = $this->grid[(string)$targetLocation];
                 $wasMoved = $piece->isMoved();
                 try {
                     $piece->move($targetLocation, $this->grid, $this->players[$this->curPlayer], Pawn::ID);
@@ -218,6 +240,9 @@ class GameState {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     private function isDraw(): bool {
         foreach ($this->players as $player) {
             $knightCount = 0;
@@ -232,7 +257,7 @@ class GameState {
                     ++$knightCount;
                 } else if ($piece instanceof Bishop) {
                     $location = $piece->getLocation();
-                    if (Grid::squareColorFromLocation($location) == (string) Player::WHITE) {
+                    if (Grid::squareColorFromLocation($location) == (string)Player::WHITE) {
                         ++$whiteSquareBishopCount;
                     } else {
                         ++$blackSquareBishopCount;
@@ -256,10 +281,16 @@ class GameState {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function isEnded(): bool {
         return $this->curGameStatus != GameState::CONTINUING;
     }
 
+    /**
+     * @return string
+     */
     public function __toString(): string {
         return $this->curGameStatus . PHP_EOL . $this->grid;
     }

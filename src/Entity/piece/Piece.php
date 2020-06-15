@@ -3,11 +3,12 @@ declare(strict_types = 1);
 
 namespace App\Entity\piece;
 
+use App\exceptions\piece\UnknownPieceException;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\exceptions\move\IdenticalMoveException;
-use App\Entity\exceptions\move\InvalidMoveException;
-use App\Entity\exceptions\move\MoveToCheckException;
-use App\Entity\exceptions\move\MoveToOccupiedByAllySquareException;
+use App\exceptions\move\IdenticalMoveException;
+use App\exceptions\move\InvalidMoveException;
+use App\exceptions\move\MoveToCheckException;
+use App\exceptions\move\MoveToOccupiedByAllySquareException;
 use App\Entity\grid\Grid;
 use App\Entity\grid\Location;
 use App\Entity\player\Player;
@@ -144,11 +145,18 @@ abstract class Piece {
         return static::ID;
     }
 
+    /**
+     * @return string
+     */
     public function __toString(): string {
         $name = static::NAME;
         return $this->toStringWithPlayer($name);
     }
 
+    /**
+     * @param string $name
+     * @return string
+     */
     private function toStringWithPlayer(string $name) {
         if ($this->player->isWhite()) {
             return $name;
@@ -157,6 +165,13 @@ abstract class Piece {
         }
     }
 
+    /**
+     * @param Location $targetLocation
+     * @param Grid $grid
+     * @return bool
+     * @throws IdenticalMoveException
+     * @throws MoveToOccupiedByAllySquareException
+     */
     public function isReachableLocation(Location $targetLocation, Grid $grid): bool {
         $targetPiece = $grid[(string)$targetLocation];
         if (Piece::isEmpty($targetPiece)) {
@@ -174,12 +189,30 @@ abstract class Piece {
         return true;
     }
 
+    /**
+     * @param Location $targetLocation
+     * @param Grid $grid
+     * @param Player $opponent
+     * @param int $transformTo
+     * @throws IdenticalMoveException
+     * @throws MoveToCheckException
+     * @throws MoveToOccupiedByAllySquareException
+     * @throws UnknownPieceException
+     */
     public function move(Location $targetLocation, Grid $grid, Player $opponent, int $transformTo) {
         $this->isReachableLocation($targetLocation, $grid);
 
         $this->tryMove($targetLocation, $grid, $opponent, $transformTo);
     }
 
+    /**
+     * @param Location $targetLocation
+     * @param Grid $grid
+     * @param Player $opponent
+     * @param int $transformTo
+     * @throws MoveToCheckException
+     * @throws UnknownPieceException
+     */
     private function tryMove(Location $targetLocation, Grid $grid, Player $opponent, int $transformTo) {
         $oldLocation = $this->location;
         $targetPiece = $grid[(string)$targetLocation];
@@ -191,14 +224,12 @@ abstract class Piece {
 
         if ($this instanceof Pawn && ($targetLocation->isFirstRank() || $targetLocation->isLastRank())) {
             $transformed = PieceFactory::makePiece($this->getPlayer(), $transformTo);
-//            $grid[(string)$targetLocation] = $transformed;
-            $grid->setSquare((string) $targetLocation, $transformed);
+            $grid[(string)$targetLocation] = $transformed;
 
             $transformed->setMoved(true);
             $transformed->setLocation($targetLocation);
         } else {
-//            $grid[(string)$targetLocation] = $this;
-            $grid->setSquare((string) $targetLocation, $this);
+            $grid[(string)$targetLocation] = $this;
 
             $this->setLocation($targetLocation);
             $this->setMoved(true);
@@ -214,14 +245,17 @@ abstract class Piece {
         }
     }
 
+    /**
+     * @param Location $oldLocation
+     * @param Location $targetLocation
+     * @param Piece $targetPiece
+     * @param bool $wasMoved
+     * @param Grid $grid
+     * @param Player $opponent
+     */
     public function undoMove(Location $oldLocation, Location $targetLocation, Piece $targetPiece, bool $wasMoved, Grid $grid, Player $opponent) {
-//        $grid[(string)$oldLocation] = $this;
-        $grid->setSquare((string) $oldLocation, $this);
-
-
-//        $grid[(string)$targetLocation] = $targetPiece;
-        $grid->setSquare((string) $targetLocation, $targetPiece);
-
+        $grid[(string)$oldLocation] = $this;
+        $grid[(string)$targetLocation] = $targetPiece;
 
         $this->setLocation($oldLocation);
         $this->setMoved($wasMoved);
@@ -229,10 +263,13 @@ abstract class Piece {
             $targetPiece->setLocation($targetLocation);
             $opponent->addPiece($targetPiece);
         }
-
-
     }
 
+    /**
+     * @param Grid $grid
+     * @param Player $opponent
+     * @return bool
+     */
     private function isCheck(Grid $grid, Player $opponent): bool {
         foreach ($opponent->getPieces() as $piece) {
             try {
@@ -247,6 +284,10 @@ abstract class Piece {
         return false;
     }
 
+    /**
+     * @param Piece $piece
+     * @return bool
+     */
     public static function isEmpty(Piece $piece): bool {
         return $piece instanceof Square;
     }

@@ -16,6 +16,11 @@ class Square extends Piece {
     const ID = 0;
     const NAME = "S";
 
+    /**
+     * @param Location $location
+     * @param array $players
+     * @return Square
+     */
     public static function getInstance(Location $location, array $players): Square {
         $whites = $players[Player::WHITE];
         $blacks = $players[Player::BLACK];
@@ -26,10 +31,18 @@ class Square extends Piece {
         return $square;
     }
 
+    /**
+     * @param Location $targetLocation
+     * @param Grid $grid
+     * @return bool
+     */
     public function isReachableLocation(Location $targetLocation, Grid $grid): bool {
         return false;
     }
 
+    /**
+     * @return string
+     */
     public function __toString(): string {
         return Grid::squareColorFromLocation($this->getLocation());
     }

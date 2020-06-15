@@ -4,8 +4,8 @@ declare(strict_types = 1);
 namespace App\Entity\grid;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\exceptions\location\InvalidFileException;
-use App\Entity\exceptions\location\InvalidRankException;
+use App\exceptions\location\InvalidFileException;
+use App\exceptions\location\InvalidRankException;
 
 /**
  * @ORM\Entity
@@ -45,6 +45,13 @@ class Location {
         $this->chessRank = $rank;
     }
 
+    /**
+     * @param string $file
+     * @param int $rank
+     * @return Location
+     * @throws InvalidFileException
+     * @throws InvalidRankException
+     */
     public static function getInstance(string $file, int $rank): Location {
         $file = strtolower($file);
         if ($file < self::MIN_FILE || $file > self::MAX_FILE) {
@@ -58,10 +65,23 @@ class Location {
         return new Location($file, $rank);
     }
 
+    /**
+     * @param string $location
+     * @return Location
+     * @throws InvalidFileException
+     * @throws InvalidRankException
+     */
     public static function getInstanceFromString(string $location): Location {
         return self::getInstance($location[0], (int) $location[1]);
     }
 
+    /**
+     * @param int $file
+     * @param int $rank
+     * @return Location
+     * @throws InvalidFileException
+     * @throws InvalidRankException
+     */
     public static function getInstanceFromInt(int $file, int $rank): Location {
         return self::getInstance(chr(ord("a") + $file), $rank);
     }
@@ -86,23 +106,39 @@ class Location {
     public function getChessRank(): int {
         return $this->chessRank;
     }
-    
+
+    /**
+     * @return bool
+     */
     public function isFirstRank(): bool {
         return $this->chessRank == 1;
     }
 
+    /**
+     * @return bool
+     */
     public function isLastRank(): bool {
         return $this->chessRank == 8;
     }
 
+    /**
+     * @return string
+     */
     public function fileToString(): string {
         return chr(ord("a") + $this->chessFile);
     }
 
+    /**
+     * @param string $file
+     * @return int
+     */
     public static function fileToInt(string $file): int {
         return ord($file) - ord(Location::MIN_FILE);
     }
 
+    /**
+     * @return string
+     */
     public function __toString(): string {
         $fileToString = $this->fileToString();
         return "$fileToString$this->chessRank";

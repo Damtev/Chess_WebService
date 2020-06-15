@@ -3,9 +3,13 @@ declare(strict_types = 1);
 
 namespace App\Entity\piece;
 
+use App\exceptions\location\InvalidFileException;
+use App\exceptions\location\InvalidRankException;
+use App\exceptions\move\IdenticalMoveException;
+use App\exceptions\move\MoveToOccupiedByAllySquareException;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\exceptions\move\InvalidPieceMoveException;
-use App\Entity\exceptions\move\MoveThroughOccupiedSquareException;
+use App\exceptions\move\InvalidPieceMoveException;
+use App\exceptions\move\MoveThroughOccupiedSquareException;
 use App\Entity\grid\Grid;
 use App\Entity\grid\Location;
 
@@ -17,22 +21,17 @@ class Pawn extends Piece {
     const ID = Square::ID + 1;
     const NAME = "P";
 
-    private bool $canTransform = false;
-
     /**
+     * @param Location $targetLocation
+     * @param Grid $grid
      * @return bool
+     * @throws IdenticalMoveException
+     * @throws InvalidPieceMoveException
+     * @throws MoveThroughOccupiedSquareException
+     * @throws MoveToOccupiedByAllySquareException
+     * @throws InvalidFileException
+     * @throws InvalidRankException
      */
-    public function isCanTransform(): bool {
-        return $this->canTransform;
-    }
-
-    /**
-     * @param bool $canTransform
-     */
-    public function setCanTransform(bool $canTransform): void {
-        $this->canTransform = $canTransform;
-    }
-
     public function isReachableLocation(Location $targetLocation, Grid $grid): bool {
         parent::isReachableLocation($targetLocation, $grid);
 
@@ -50,6 +49,12 @@ class Pawn extends Piece {
         return true;
     }
 
+    /**
+     * @param Location $targetLocation
+     * @param int $fileDiff
+     * @param int $rankDiff
+     * @throws InvalidPieceMoveException
+     */
     private function checkVerticalLineMove(Location $targetLocation, int $fileDiff, int $rankDiff) {
         if ($rankDiff == 0 ||
             abs($fileDiff) > 1 ||
@@ -60,6 +65,15 @@ class Pawn extends Piece {
         }
     }
 
+    /**
+     * @param Location $targetLocation
+     * @param Grid $grid
+     * @param int $rankDiff
+     * @throws InvalidPieceMoveException
+     * @throws MoveThroughOccupiedSquareException
+     * @throws InvalidFileException
+     * @throws InvalidRankException
+     */
     private function checkTwoSquaresMove(Location $targetLocation, Grid $grid, int $rankDiff) {
         if ($this->isMoved() && abs($rankDiff) > 1) {
             throw new InvalidPieceMoveException($this, $targetLocation);
@@ -73,6 +87,12 @@ class Pawn extends Piece {
         }
     }
 
+    /**
+     * @param Location $targetLocation
+     * @param Grid $grid
+     * @param int $fileDiff
+     * @throws InvalidPieceMoveException
+     */
     private function checkDiagonalMove(Location $targetLocation, Grid $grid, int $fileDiff) {
         $targetPiece = $grid[(string) $targetLocation];
         if (abs($fileDiff) == 1 && Piece::isEmpty($targetPiece)) {

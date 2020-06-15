@@ -1,11 +1,18 @@
 <?php
 declare(strict_types = 1);
 
-namespace App\Entity\exceptions\move;
+namespace App\exceptions\move;
 
 use App\Entity\grid\Location;
 
+/**
+ * Class MoveThroughOccupiedSquareException
+ * @package App\exceptions\move
+ */
 class MoveThroughOccupiedSquareException extends InvalidMoveException {
+    /**
+     * @var Location
+     */
     private Location $location;
 
     /**
@@ -17,6 +24,9 @@ class MoveThroughOccupiedSquareException extends InvalidMoveException {
         parent::__construct();
     }
 
+    /**
+     * @return string
+     */
     public function __toString(): string {
         return "Cannot move through occupied square $this->location";
     }

@@ -1,14 +1,24 @@
 <?php
 declare(strict_types = 1);
 
-namespace App\Entity\exceptions\move;
+namespace App\exceptions\move;
 
 use App\Entity\piece\Piece;
 use App\Entity\player\Player;
 
+/**
+ * Class AnotherPieceOwnerException
+ * @package App\exceptions\move
+ */
 class AnotherPieceOwnerException extends InvalidMoveException {
 
+    /**
+     * @var Piece
+     */
     private Piece $piece;
+    /**
+     * @var Player
+     */
     private Player $curPlayer;
 
     /**
@@ -21,6 +31,10 @@ class AnotherPieceOwnerException extends InvalidMoveException {
         $this->curPlayer = $curPlayer;
         parent::__construct();
     }
+
+    /**
+     * @return string
+     */
     public function __toString(): string {
         $pieceLocation = $this->piece->getLocation();
         $pieceOwner = $this->piece->getPlayer();

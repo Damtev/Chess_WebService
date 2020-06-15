@@ -3,9 +3,19 @@ declare(strict_types = 1);
 
 namespace App\Entity\piece;
 
-use App\Entity\exceptions\piece\UnknownPieceException;
+use App\exceptions\piece\UnknownPieceException;
 
+/**
+ * Class PieceFactory
+ * @package App\Entity\piece
+ */
 class PieceFactory {
+    /**
+     * @param $player
+     * @param int $id
+     * @return Piece
+     * @throws UnknownPieceException
+     */
     public static function makePiece($player, int $id): Piece {
         switch ($id) {
             case Pawn::ID:

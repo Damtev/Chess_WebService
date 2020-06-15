@@ -11,9 +11,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+/**
+ * Class ChessController
+ * @package App\Controller
+ */
 class ChessController extends AbstractController {
     /**
      * @Route("/start", name="start_game")
+     * @return Response
      */
     public function startGame(): Response {
         $entityManager = $this->getDoctrine()->getManager();

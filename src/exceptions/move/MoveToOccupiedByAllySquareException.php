@@ -1,11 +1,18 @@
 <?php
 declare(strict_types = 1);
 
-namespace App\Entity\exceptions\move;
+namespace App\exceptions\move;
 
 use App\Entity\grid\Location;
 
+/**
+ * Class MoveToOccupiedByAllySquareException
+ * @package App\exceptions\move
+ */
 class MoveToOccupiedByAllySquareException extends InvalidMoveException {
+    /**
+     * @var Location
+     */
     private Location $location;
 
     /**
@@ -17,7 +24,10 @@ class MoveToOccupiedByAllySquareException extends InvalidMoveException {
         parent::__construct();
     }
 
-    public function __toString() {
+    /**
+     * @return string
+     */
+    public function __toString(): string {
         return "$this->location is occupied by an allied piece";
     }
 }
