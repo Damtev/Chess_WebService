@@ -27,7 +27,7 @@ class ChessController extends AbstractController {
         $entityManager->persist($game);
         $entityManager->flush();
 
-        return new Response('Saved new game with id ' . $game->getId() . PHP_EOL . $game);
+        return new Response('Saved new game with id ' . $game->getId());
     }
 
     /**
